@@ -23,6 +23,7 @@ export MY_DOCKER_SUBDIR=${MAIN_DIR}/${MY_DOCKER_ENV}
 alias dbuild=build.sh
 alias drun=run.sh
 alias count=count.sh
+alias oval=oval.py
 
 # back to the original directory
 
