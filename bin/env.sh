@@ -9,21 +9,23 @@ cd $SCRIPT_DIR
 # add script dir to the PATH
 
 SCRIPT_DIR=`pwd`
-export PATH="${SCRIPT_DIR}:${PATH}"
+#export PATH="${SCRIPT_DIR}:${PATH}"
 
 # define current docker recipe
 
-MAIN_DIR=`dirname ${SCRIPT_DIR}`
-export MY_DOCKER_ENV=$1
-echo MY_DOCKER_ENV: ${MY_DOCKER_ENV}
-export MY_DOCKER_SUBDIR=${MAIN_DIR}/${MY_DOCKER_ENV}
+export MY_DEV_TOOLS_DIR=`dirname ${SCRIPT_DIR}`
+export MY_DEV_TOOLS_ENV=$1
+export MY_DEV_TOOLS_SUBDIR=${MY_DEV_TOOLS_DIR}/${MY_DEV_TOOLS_ENV}
+
+echo env: ${MY_DEV_TOOLS_ENV}
 
 # aliases
 
-alias dbuild=build.sh
-alias drun=run.sh
-alias count=count.sh
-alias oval=oval.py
+alias dbuild=${SCRIPT_DIR}/build.sh
+alias dbash=${SCRIPT_DIR}/run.sh
+
+alias count=/mydevtools/count.sh
+alias oval=/mydevtools/oval.py
 
 # back to the original directory
 

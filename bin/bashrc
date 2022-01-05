@@ -1,0 +1,11 @@
+
+# script directory
+
+SCRIPT_NAME=${BASH_SOURCE[0]}
+SCRIPT_DIR=`dirname ${SCRIPT_NAME}`
+
+# aliases
+
+alias count=${SCRIPT_DIR}/count.sh
+alias oval=${SCRIPT_DIR}/oval.py
+

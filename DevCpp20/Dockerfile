@@ -28,6 +28,9 @@ RUN rm -rf /var/lib/apt/lists/*
 # timezone
 ENV TZ=Europe/Paris
 
+# Local copy of my tools
+COPY mydevtools /mydevtools
+
 # Start a shell by default
-CMD bash
+CMD bash --rcfile /mydevtools/bashrc
 
