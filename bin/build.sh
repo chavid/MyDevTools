@@ -5,10 +5,10 @@
 #flavor=${1}
 #shift
 
-cd ${MY_DEV_TOOLS_SUBDIR}
+cd ${MY_DEV_TOOLS_DOCKER_DIR}
 
 rm -rf mydevtools
 cp -r ../bin mydevtools
 
-docker build  -f Dockerfile -t `cat image.txt` .
+docker build  -f Dockerfile -t `cat Dockertag` .
 # --force-rm --no-cache
