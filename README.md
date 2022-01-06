@@ -1,13 +1,17 @@
 
 # General use
 
-Starting from a bash shell, one should source `bin/env.sh <SUBDIR>`, with the selected subdirectory as argument (for example `DevCpp20`). This will make available the following commands:
-- `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `image.txt`.
-- `drun [arguments]`: alias to the `run.sh` script, will start a new interactive container, from the docker image whose name is taken from `image.txt`, and mounting the current working directory as `/work`.
+Starting from a bash shell, and staying into any directory, one should source `<MyDevToolsDir>/bin/env.sh [<SubDir>]`. If `<SubDir>` is given, the script will search locally if `./<SubDir>` contains a Docker recipe and tag. If not found locally, it will search the same in `<MyDevToolsDir>/<SubDir>`. If `<SubDir>` is not given, the script will search a recipe recursively from the current directory.
 
-Also few utilities:
+This will make available the following commands:
+- `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `image.txt`.
+- `dbash`: alias to the `run.sh` script, will start a new interactive container, from the docker image whose name is taken from `Dockertag`, mount the current working directory as `/work`, and start a bash shell.
+
+Those other commands  are available after in the orginal bash shell, once `env.sh` has been source:
 - `count`: count the code lines in the current directory and subdirectories.
 - `oval`: automatically run regression tests and/or various set of commands.
+
+If the docker recipe include a copy of `<MyDevToolsDir>/bin` as `/mydevtools` in the image, and define `bash --rcfile /mydevtools/bashrc` as teh defautl image command (`CMD`), then the utilities above will also be available in the corresponding containers.
 
 # Files in `bin` subdirectory
 
@@ -22,7 +26,7 @@ Other utilities
 # Files in other subdirectories
 
 * `Dockerfile` : docker recipe.
-* `image.txt` : name to be given to the docker image.
+* `Dockertag` : name to be given to the docker image.
 
 
 # Quick and dirty recipes for `oval`
