@@ -19,6 +19,9 @@ RUN apt-get install -y time \
 && apt-get install -y cmake \
 && apt-get install -y git
 
+# Installations apt-get, C++
+RUN apt-get install -y cppcheck
+
 # Installations apt-get, PYTHON
 RUN apt-get install -y python-dev
 
