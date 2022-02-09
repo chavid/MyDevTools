@@ -41,9 +41,9 @@ else
       echo no recipe found
     else
       dockerfile=`find . -iregex '.*dockerfile.*' -type f`
-      MY_DEV_TOOLS_DOCKER_DIR=`dirname ${dockerfile}`
+      export MY_DEV_TOOLS_DOCKER_DIR=`dirname ${dockerfile}`
       cd ${MY_DEV_TOOLS_DOCKER_DIR}
-      MY_DEV_TOOLS_DOCKER_DIR=`pwd`
+      export MY_DEV_TOOLS_DOCKER_DIR=`pwd`
       cd ${ORIGINAL_DIR}
     fi
   fi
