@@ -1,0 +1,11 @@
+2022-02-20 18:40:07,573 :: root :: DEBUG    :: expand % to demo1
+2022-02-20 18:40:07,573 :: root :: DEBUG    :: expand % to demo2
+2022-02-20 18:40:07,573 :: root :: DEBUG    :: expand % to demo3
+2022-02-20 18:40:07,573 :: root :: DEBUG    :: targets: ['demo1', 'demo2', 'demo3']
+2022-02-20 18:40:07,574 :: root :: DEBUG    :: process target demo1
+2022-02-20 18:40:07,583 :: root :: INFO     :: demo1: - LINE 3
+2022-02-20 18:40:07,583 :: root :: INFO     :: demo1: + LINE 30
+2022-02-20 18:40:07,583 :: root :: DEBUG    :: process target demo2
+2022-02-20 18:40:07,591 :: root :: INFO     :: demo2: - LINE 20
+2022-02-20 18:40:07,592 :: root :: DEBUG    :: process target demo3
+2022-02-20 18:40:07,602 :: root :: INFO     :: demo3: ==

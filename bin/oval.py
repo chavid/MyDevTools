@@ -8,6 +8,9 @@ import subprocess
 import sys
 import hashlib
 import logging
+import concurrent.futures
+import difflib
+
 
 
 # ==========================================
@@ -70,10 +73,13 @@ logger.addHandler(log_file_handler)
 # ==========================================
 # main work in a given directory
 
+CWD = os.getcwd()
+differ = difflib.Differ() # https://docs.python.org/3/library/difflib.html
+
 def process_directory(workdir, subcommand, args) :
 
     os.chdir(workdir)
-    if (workdir!='.') :
+    if (workdir!='.') and (workdir!=CWD) :
       logging.info('===== '+workdir)  
 
     # search for ovalfile in the current working directory
@@ -226,11 +232,11 @@ def process_directory(workdir, subcommand, args) :
                         for grp in fmatch.groups():
                             out_ref_matches.append(grp)
             # complete lacking matches
-            while len(out_log_matches) < len(out_ref_matches):
-                out_log_matches.append('EMPTY STRING')
-                out_md5_matches.append('EMPTY STRING')
-            while len(out_log_matches) > len(out_ref_matches):
-                out_ref_matches.append('EMPTY STRING')
+            #while len(out_log_matches) < len(out_ref_matches):
+            #    out_log_matches.append('EMPTY STRING')
+            #    out_md5_matches.append('EMPTY STRING')
+            #while len(out_log_matches) > len(out_ref_matches):
+            #    out_ref_matches.append('EMPTY STRING')
             # compare
             zipped = zip(out_log_matches, out_md5_matches, out_ref_matches)
             nbdiff = 0
@@ -238,17 +244,22 @@ def process_directory(workdir, subcommand, args) :
                 prefix = target_name+': '
             else:
                 prefix = ''
-            for tpl in zipped:
-                if md5:
+            if md5:
+                for tpl in zipped:
                     if tpl[1] != tpl[2]:
                         logging.info(prefix+'md5("{}") != {}'.format(tpl[0], tpl[2]))
                         nbdiff += 1
-                else:
-                    if tpl[0] != tpl[2]:
-                        logging.info(prefix+"{} != {}".format(tpl[0], tpl[2]))
+            else:
+                #for tpl in zipped:
+                #    if tpl[0] != tpl[2]:
+                #        logging.info(prefix+"{} != {}".format(tpl[0], tpl[2]))
+                #        nbdiff += 1
+                for line in list(differ.compare(out_ref_matches, out_log_matches)):
+                    if ((line[0]=='+')or(line[0]=='-')):
+                        logging.info(prefix+"{}".format(line))
                         nbdiff += 1
             if nbdiff == 0:
-                logging.info(prefix+'no difference')
+                logging.info(prefix+'==')
     elif subcommand == 'filter-out':
         for target_name in target_names:
             logging.debug('process target {}'.format(target_name))
@@ -309,6 +320,23 @@ def process_directory(workdir, subcommand, args) :
 
 
 # ==========================================
+# find workdirs
+
+def try_workdir( element, workdirs ):
+  if element[0] == '.' :
+    return
+  if not os.path.isdir(element) :
+    return
+  ovalcfg = os.path.join(element,'ovalfile.py')
+  if os.path.isfile(ovalcfg) :
+    workdirs.append(element)
+  else :
+    for subelement in os.listdir(element) :
+      subelementpath = os.path.join(element,subelement)
+      try_workdir(subelementpath,workdirs)
+
+
+# ==========================================
 # process command-line options
 
 parser = argparse.ArgumentParser(description='Automatic running and diffing of executables')
@@ -322,14 +350,7 @@ args = parser.parse_args()
 
 # find ovafiles and establish workdirs
 workdirs = []
-if os.path.isfile('ovalfile.py') :
-  workdirs.append('.')
-else :
-  elements = os.listdir()
-  for element in elements :
-    if os.path.isdir(element) :
-      if os.path.isfile(element+'/ovalfile.py') :
-        workdirs.append(element)
+try_workdir(os.getcwd(),workdirs)
 
 # prepare subcommand
 abbrevs = {
@@ -347,6 +368,13 @@ if abbrev in abbrevs.keys():
 else:
     subcommand = abbrev
 
-for workdir in workdirs :
-  process_directory(workdir,subcommand,args)
-
+if subcommand=='run':
+  pools = concurrent.futures.ProcessPoolExecutor(max_workers=10)
+  results = {}
+  for workdir in workdirs :
+    results[workdir] = pools.submit(process_directory,workdir,subcommand,args)
+  for workdir in workdirs :
+    results[workdir].result()
+else:
+  for workdir in workdirs :
+    process_directory(workdir,subcommand,args)
