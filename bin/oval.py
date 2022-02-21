@@ -1,16 +1,49 @@
 #!/usr/bin/env python3
 
+import sys
+try:
+    assert sys.version_info >= (3,8)
+except:
+    print("Python 3.8+ required")
+    exit(1)
+
+"""
+Typing 'oval' or 'oval l' will display the list of targets, as described in in ovalfile.py.
+Each target is the association between a name and a shell command.
+
+Typing 'oval r <name>' will execute the shell command associated with the given name
+One can execute several ones sequentially: 'oval r <name1> <name2>...'
+
+Typing 'oval v <name>' copy the log file '<name>.out' into the ref file '<name>.ref'.
+Typing 'oval d <name>' compare the log file '<name>.out' with the ref file '<name>.ref'.
+Typing 'oval fo <name>' show the filtered part of '<name>.out'.
+Typing 'oval fr <name>' show the filtered part of '<name>.ref'.
+Typing 'oval c <name>' crypt '<name>.ref' into '<name>.ref'.
+
+One can use wildcards: 'oval r <pattern1> <pattern2>...'
+The only wildcard character is '%'.
+One can check how a given pattern expands : 'oval l <pattern>'.
+
+On top of the targets, the configuration ovalfile.py can include a list of filters.
+
+The ones in run_filters_out describe some lines to be erased from the output.
+
+The ones in diff_filters_in describe the lines to be compared. If the regular
+expression has two groups, it is considered as a pair name-value. A dictionary
+will be built, the comparison will be between the current output and the
+ref dictionaries.
+
+"""
+
 import argparse
 import os
 import os.path
 import re
 import subprocess
-import sys
 import hashlib
 import logging
 import concurrent.futures
 import difflib
-
 
 
 # ==========================================
@@ -65,9 +98,182 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 logger.addHandler(log_file_handler)
 
+# ==========================================
+# SUBCOMMAND: Build
+
+def apply_build(target,multi,expanded):
+    command = 'make {}.exe'.format(target['name'])
+    logging.info(command)
+    proc = subprocess.run(command, shell=True, executable='bash', check=True)
+    return proc.returncode
+
 
 # ==========================================
-# subcommands
+# SUBCOMMAND: Run
+
+def apply_run(target,multi,expanded):
+    sh_command = "({}) 2>&1 | tee {}.out ; test ${{PIPESTATUS[0]}} -eq 0".format(target["command"], target['name'])
+    out_file_name = "{}.out".format(target['name'])
+    # version originale :  stderr=subprocess.STDOUT
+    proc = subprocess.run(sh_command, shell=True, executable='bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    with open(out_file_name, 'w') as out_content:
+        runexps = [re.compile('^' + f.replace('%', '.*') + '$') for f in target['run_filters_out']]
+        diffexps = [re.compile('^' + f.replace('%', '.*') + '$') for f in target['diff_filters_in']]
+        for line in proc.stdout.rstrip().split('\n'):
+            fmatches = [fexp.match(line) for fexp in runexps]
+            if [fmatch for fmatch in fmatches if fmatch]:
+                continue
+            out_content.write(line + '\n')
+            if multi:
+                fmatches = [fexp.match(line) for fexp in diffexps]
+                if [fmatch for fmatch in fmatches if fmatch]:
+                    logging.info(target['name'] + ": " + line)
+            else:
+                logging.info(line)
+    return proc.returncode
+
+
+# ==========================================
+# SUBCOMMAND: Diff
+
+def apply_diff(target,multi,expanded):
+
+    # if a line has two matching groups, we suppose it a a key/value pair
+    # and put it in a dictionary. Else, it is put in a list.
+    # ATTENTION : la partie cryptage n'est pas operationnelle
+    # pour les filtres de diff qui ont plusieurs groupes !!!
+
+    logging.debug('process target {}'.format(target['name']))
+    if not target['out']:
+        logging.warning('lacking file {}.out'.format(target['name']))
+        return
+    if not target['ref'] and not target['md5']:
+        logging.warning('lacking file {}.ref or {}.md5'.format(target['name'], target['name']))
+        return
+    out_file_name = target['out']
+    if target['ref']:
+        ref_file_name = target['ref']
+        md5 = False
+    else:
+        ref_file_name = target['md5']
+        md5 = True
+    fexps = [re.compile('^' + f.replace('%', '.*') + '$') for f in target['diff_filters_in']]
+    if multi or expanded:
+        prefix = target['name'] + ': '
+    else:
+        prefix = ''
+
+    # collect matching groups in output
+    proc1 = subprocess.run("cat {} 2>&1".format(out_file_name),
+                           shell=True, executable='bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE , universal_newlines=True)
+    out_log_matches = []
+    out_md5_matches = []
+    out_log_dict = {}
+    out_md5_dict = {}
+    out_log_keys = []
+    for line in proc1.stdout.split('\n'):
+        for fmatch in [fexp.match(line) for fexp in fexps]:
+            if fmatch:
+                grps = fmatch.groups()
+                if len(grps)==2:
+                    if grps[0] in out_log_dict:
+                        logging.error(prefix + 'redefinition of {} in output'.format(grps[0]))
+                    else:
+                        out_log_dict[grps[0]] = grps[1]
+                        out_md5_dict[grps[0]] = hashlib.md5(grps[1].encode('utf-8')).hexdigest()
+                        # so to memorize results ordering
+                        out_log_keys.append(grps[0])
+                else:
+                    for grp in grps:
+                        out_log_matches.append(grp)
+                        out_md5_matches.append(hashlib.md5(grp.encode('utf-8')).hexdigest())
+
+    # collect matching groups in reference
+    proc2 = subprocess.run("cat {} 2>&1".format(ref_file_name),
+                           shell=True, executable='bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE , universal_newlines=True)
+    out_ref_matches = []
+    out_ref_dict = {}
+    out_ref_keys = []
+    for line in proc2.stdout.split('\n'):
+        for fmatch in [fexp.match(line) for fexp in fexps]:
+            if fmatch:
+                grps = fmatch.groups()
+                if len(grps)==2:
+                    if grps[0] in out_ref_dict:
+                        logging.error(prefix + 'redefinition of {} in reference'.format(grps[0]))
+                    else:
+                        out_ref_dict[grps[0]] = grps[1]
+                        # so to mzmorize results ordering
+                        out_ref_keys.append(grps[0])
+                else:
+                    for grp in grps:
+                        out_ref_matches.append(grp)
+
+    # complete lacking matches in lists
+    #while len(out_log_matches) < len(out_ref_matches):
+    #    out_log_matches.append('EMPTY STRING')
+    #    out_md5_matches.append('EMPTY STRING')
+    #while len(out_log_matches) > len(out_ref_matches):
+    #    out_ref_matches.append('EMPTY STRING')
+
+    # prepare comparisons between output and ref
+    nbdiff = 0
+
+    # compare single matches
+    zipped = zip(out_log_matches, out_md5_matches, out_ref_matches)
+    if md5:
+        for tpl in zipped:
+            if tpl[1] != tpl[2]:
+                logging.info(prefix+'md5("{}") != {}'.format(tpl[0], tpl[2]))
+                nbdiff += 1
+    else:
+        #for tpl in zipped:
+        #    if tpl[0] != tpl[2]:
+        #        logging.info(prefix+"{} != {}".format(tpl[0], tpl[2]))
+        #        nbdiff += 1
+        for line in list(differ.compare(out_ref_matches, out_log_matches)):
+            if ((line[0]=='+')or(line[0]=='-')):
+                logging.info(prefix+"{}".format(line))
+                nbdiff += 1
+
+    # compare key/value matches (not implemented for md5)
+    for k in out_log_keys:
+        if k in out_ref_dict:
+            if out_log_dict[k] != out_ref_dict[k]:
+                logging.info(prefix + "for {}, {} != {}".format(k,out_log_dict[k],out_ref_dict[k]))
+                nbdiff += 1
+        else:
+            logging.info(prefix + 'unexpected {}'.format(k))
+            nbdiff += 1
+    for k in out_ref_keys:
+        if not k in out_log_dict:
+            logging.info(prefix + 'lacking {}'.format(k))
+            nbdiff += 1
+
+    # final summary
+    if nbdiff == 0:
+        logging.info(prefix+'==')
+        return 0 ;
+    else:
+        return 1
+
+
+# ==========================================
+# SUBCOMMAND: Crypt
+
+def apply_crypt( target,multi,expanded ):
+    fexps = [re.compile('^'+f.replace('%', '.*')+'$') for f in target['diff_filters_in']]
+    ref_file_name = '{}.ref'.format(target['name'])
+    md5_file_name = '{}.md5'.format(target['name'])
+    with open(ref_file_name) as ref_content:
+        logging.info('crypting {}.ref into {}.md5'.format(target['name'], target['name']))
+        with open(md5_file_name,'w') as md5_content:
+            for ref_line in ref_content:
+                line = ref_line.rstrip()
+                for fmatch in [fexp.match(line) for fexp in fexps]:
+                    if fmatch:
+                        for grp in fmatch.groups():
+                            md5_content.write(hashlib.md5(grp.encode('utf-8')).hexdigest()+'\n')
 
 
 # ==========================================
@@ -80,19 +286,23 @@ def process_directory(workdir, subcommand, args) :
 
     os.chdir(workdir)
     if (workdir!='.') and (workdir!=CWD) :
-      logging.info('===== '+workdir)  
+      logging.info('>>>>> '+workdir)  
 
     # search for ovalfile in the current working directory
-    sys.path.insert(0,os.getcwd())
+    syspathbackup = sys.path
+    sys.path = ( os.getcwd() , )
     import ovalfile as config
+    sys.path = syspathbackup
+
+    returncode = 0
 
     # prepare the list of all targets
     all_target_names = [t['name'] for t in config.targets]
     all_targets = {t['name'] : t for t in config.targets}
-    if (subcommand == 'diff' or subcommand == 'val' or subcommand == 'crypt'):
+    if (subcommand == 'diff' or subcommand == 'run-diff' or subcommand == 'val' or subcommand == 'crypt'):
         for target_name in all_target_names:
             target = all_targets[target_name]
-            if os.path.isfile(target_name+'.out'):
+            if (subcommand == 'run-diff' or os.path.isfile(target_name+'.out')):
                 target['out'] = target_name+'.out'
             else:
                 target['out'] = None
@@ -152,114 +362,43 @@ def process_directory(workdir, subcommand, args) :
         for target_name in target_names:
             target = all_targets[target_name]
             logging.info("{}: {}".format(target_name, target["command"]))
+    elif subcommand == 'build':
+        for target_name in target_names:
+            res = apply_build(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
     elif subcommand == 'run':
         for target_name in target_names:
-            target = all_targets[target_name]
-            sh_command = "({}) 2>&1 | tee {}.out".format(target["command"],target_name)
-            out_file_name = "{}.out".format(target_name)
-            proc = subprocess.run(sh_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='bash', universal_newlines=True, check=True)
-            out_value = proc.stdout.rstrip()
-            with open(out_file_name,'w') as out_content:
-                runexps = [re.compile('^'+f.replace('%', '.*')+'$') for f in target['run_filters_out']]
-                diffexps = [re.compile('^'+f.replace('%', '.*')+'$') for f in target['diff_filters_in']]
-                for line in out_value.split('\n'):
-                    fmatches = [fexp.match(line) for fexp in runexps]
-                    if [fmatch for fmatch in fmatches if fmatch]:
-                        continue
-                    out_content.write(line+'\n')
-                    if multi:
-                        fmatches = [fexp.match(line) for fexp in diffexps]
-                        if [fmatch for fmatch in fmatches if fmatch]:
-                            logging.info(target_name+": "+line)
-                    else:
-                        logging.info(line)
+            res = apply_run(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+    elif subcommand == 'diff':
+        for target_name in target_names:
+            res = apply_diff(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+    elif subcommand == 'run-diff':
+        for target_name in target_names:
+            res = apply_run(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+            res  =apply_diff(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+    elif subcommand == 'prod':
+        for target_name in target_names:
+            res = apply_build(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+            res = apply_run(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
+            res = apply_diff(all_targets[target_name],multi,expanded)
+            returncode = returncode or res
     elif subcommand == 'val':
         for target_name in target_names:
             command = 'cp -f {}.out {}.ref'.format(target_name, target_name)
             logging.info(command)
             subprocess.check_call(command, shell=True)
+            target = all_targets[target_name]
+            if target['md5']:
+                apply_crypt(target,multi,expanded)
     elif subcommand == 'crypt':
         for target_name in target_names:
-            target = all_targets[target_name]
-            fexps = [re.compile('^'+f.replace('%', '.*')+'$') for f in target['diff_filters_in']]
-            ref_file_name = '{}.ref'.format(target_name)
-            md5_file_name = '{}.md5'.format(target_name)
-            with open(ref_file_name) as ref_content:
-                logging.info('crypting {}.ref into {}.md5'.format(target_name, target_name))
-                with open(md5_file_name,'w') as md5_content:
-                    for ref_line in ref_content:
-                        line = ref_line.rstrip()
-                        for fmatch in [fexp.match(line) for fexp in fexps]:
-                            if fmatch:
-                                for grp in fmatch.groups():
-                                    md5_content.write(hashlib.md5(grp).hexdigest()+'\n')
-    elif subcommand == 'diff':
-        for target_name in target_names:
-            target = all_targets[target_name]
-            logging.debug('process target {}'.format(target_name))
-            if not target['out']:
-                logging.warning('lacking file {}.out'.format(target_name))
-                continue
-            if not target['ref'] and not target['md5']:
-                logging.warning('lacking file {}.ref or {}.md5'.format(target_name,target_name))
-                continue
-            out_file_name = target['out']
-            if target['ref']:
-                ref_file_name = target['ref']
-                md5 = False
-            else:
-                ref_file_name = target['md5']
-                md5 = True
-            fexps = [re.compile('^'+f.replace('%', '.*')+'$') for f in target['diff_filters_in']]
-            proc1 = subprocess.Popen("cat {} 2>&1".format(out_file_name),
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='bash', universal_newlines=True)
-            out_value, err_value = proc1.communicate()
-            out_log_matches = []
-            out_md5_matches = []
-            for line in out_value.split('\n'):
-                for fmatch in [fexp.match(line) for fexp in fexps]:
-                    if fmatch:
-                        for grp in fmatch.groups():
-                            out_log_matches.append(grp)
-                            out_md5_matches.append(hashlib.md5(grp.encode('utf-8')).hexdigest())
-            proc2 = subprocess.Popen("cat {} 2>&1".format(ref_file_name),
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='bash', universal_newlines=True)
-            out_value2, err_value2 = proc2.communicate()
-            out_ref_matches = []
-            for line in out_value2.split('\n'):
-                for fmatch in [fexp.match(line) for fexp in fexps]:
-                    if fmatch:
-                        for grp in fmatch.groups():
-                            out_ref_matches.append(grp)
-            # complete lacking matches
-            #while len(out_log_matches) < len(out_ref_matches):
-            #    out_log_matches.append('EMPTY STRING')
-            #    out_md5_matches.append('EMPTY STRING')
-            #while len(out_log_matches) > len(out_ref_matches):
-            #    out_ref_matches.append('EMPTY STRING')
-            # compare
-            zipped = zip(out_log_matches, out_md5_matches, out_ref_matches)
-            nbdiff = 0
-            if multi or expanded:
-                prefix = target_name+': '
-            else:
-                prefix = ''
-            if md5:
-                for tpl in zipped:
-                    if tpl[1] != tpl[2]:
-                        logging.info(prefix+'md5("{}") != {}'.format(tpl[0], tpl[2]))
-                        nbdiff += 1
-            else:
-                #for tpl in zipped:
-                #    if tpl[0] != tpl[2]:
-                #        logging.info(prefix+"{} != {}".format(tpl[0], tpl[2]))
-                #        nbdiff += 1
-                for line in list(differ.compare(out_ref_matches, out_log_matches)):
-                    if ((line[0]=='+')or(line[0]=='-')):
-                        logging.info(prefix+"{}".format(line))
-                        nbdiff += 1
-            if nbdiff == 0:
-                logging.info(prefix+'==')
+            apply_crypt(all_targets[target_name],multi,expanded)
     elif subcommand == 'filter-out':
         for target_name in target_names:
             logging.debug('process target {}'.format(target_name))
@@ -315,8 +454,8 @@ def process_directory(workdir, subcommand, args) :
     else:
         logging.error('UNKNOWN SUBCOMMAND: '+subcommand)
 
-    os.chdir('..')
     del sys.modules['ovalfile']
+    return returncode
 
 
 # ==========================================
@@ -348,19 +487,25 @@ parser.add_argument('target', nargs='*', default=['%'],
                     help='the list of targets to be processed')
 args = parser.parse_args()
 
-# find ovafiles and establish workdirs
+# find ovalfiles and establish workdirs
 workdirs = []
 try_workdir(os.getcwd(),workdirs)
 
-# prepare subcommand
+
+# ==========================================
+# Prepare subcommand
+
 abbrevs = {
     'list': 'list', 'lis': 'list', 'li': 'list', 'l': 'list',
+    'build': 'build', 'buil': 'build', 'bui': 'build', 'bu': 'build', 'b': 'build',
     'run': 'run', 'ru': 'run', 'r': 'run',
     'val': 'val', 'va': 'val', 'v': 'val',
     'diff': 'diff', 'dif': 'diff', 'di': 'diff', 'd': 'diff',
     'crypt': 'crypt', 'cryp': 'crypt', 'cry': 'crypt', 'cr': 'crypt', 'c': 'crypt',
     'filter-out': 'filter-out', 'fo': 'filter-out',
     'filter-ref': 'filter-ref', 'fr': 'filter-ref',
+    'run-diff': 'run-diff', 'rd': 'run-diff',
+    'prod': 'prod', 'pro': 'prod', 'pr': 'prod', 'p': 'prod',
 }
 abbrev = args.subcommand
 if abbrev in abbrevs.keys():
@@ -368,13 +513,19 @@ if abbrev in abbrevs.keys():
 else:
     subcommand = abbrev
 
+
+# ==========================================
+# Start to process directories, in parallel if subcommand is "run"
+
+globalreturncode = 0
 if subcommand=='run':
   pools = concurrent.futures.ProcessPoolExecutor(max_workers=10)
   results = {}
   for workdir in workdirs :
     results[workdir] = pools.submit(process_directory,workdir,subcommand,args)
   for workdir in workdirs :
-    results[workdir].result()
+    globalreturncode = globalreturncode or results[workdir].result()
 else:
   for workdir in workdirs :
-    process_directory(workdir,subcommand,args)
+    globalreturncode = globalreturncode or process_directory(workdir,subcommand,args)
+sys.exit(globalreturncode)

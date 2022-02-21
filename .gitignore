@@ -33,3 +33,4 @@
 
 # Oval
 .oval.log
+__pycache__
