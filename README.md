@@ -1,17 +1,18 @@
 
 # General use
 
-Starting from a bash shell, and staying into any directory, one should source `<MyDevToolsDir>/bin/env.sh [<SubDir>]`. If `<SubDir>` is given, the script will search locally if `./<SubDir>` contains a Docker recipe and tag. If not found locally, it will search the same in `<MyDevToolsDir>/<SubDir>`. If `<SubDir>` is not given, the script will search a recipe recursively from the current directory.
+Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.sh [<SubDir>]`. If `<SubDir>` is given, the script will search locally if `./<SubDir>` contains a Docker recipe and tag. If not found locally, it will search the same in `<DevScripts>/<SubDir>`. If `<SubDir>` is not given, the script will search a recipe recursively from the current directory.
 
 This will make available the following commands:
-- `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `image.txt`.
+- `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `Dockertag`.
 - `dbash`: alias to the `run.sh` script, will start a new interactive container, from the docker image whose name is taken from `Dockertag`, mount the current working directory as `/work`, and start a bash shell.
 
 Those other commands  are available after in the orginal bash shell, once `env.sh` has been source:
 - `count`: count the code lines in the current directory and subdirectories.
 - `oval`: automatically run regression tests and/or various set of commands.
 
-If the docker recipe include a copy of `<MyDevToolsDir>/bin` as `/mydevtools` in the image, and define `bash --rcfile /mydevtools/bashrc` as teh defautl image command (`CMD`), then the utilities above will also be available in the corresponding containers.
+If the docker recipe include a copy of `<DevScripts>/bin` as `/mydevtools` in the image, and define `bash --rcfile /mydevtools/bashrc` as the default image command (`CMD`), then the utilities above will also be available in the corresponding containers.
+
 
 # Files in `bin` subdirectory
 
@@ -22,6 +23,7 @@ Docker related:
 Other utilities
 - `count.sh`: count the code lines in the current directory and subdirectories.
 - `oval.py`: automatically run regression tests and/or various set of commands.
+
 
 # Files in other subdirectories
 

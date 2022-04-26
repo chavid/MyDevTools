@@ -5,7 +5,7 @@
 #flavor=${1}
 #shift
 
-cd ${MY_DEV_TOOLS_DOCKER_DIR}
+cd ${DEV_SCRIPTS_DOCKER_DIR}
 
 rm -rf mydevtools
 cp -r ../bin mydevtools
