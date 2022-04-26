@@ -17,7 +17,7 @@ If the docker recipe include a copy of `<MyDevToolsDir>/bin` as `/mydevtools` in
 
 Docker related:
 * `build.sh` : script used to build the image.
-* `run.sh` : script used to build the image.
+* `run.sh` : script used to run the image.
 
 Other utilities
 - `count.sh`: count the code lines in the current directory and subdirectories.
