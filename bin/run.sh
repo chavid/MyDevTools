@@ -6,4 +6,4 @@
 #shift
 #docker run -it --rm -v ${PWD}:/work -w /work `cat ${SCRIPT_DIR}/name.${target}.${flavor}.txt` $*
 
-docker run -it --rm -v ${PWD}:/work -w /work `cat ${MY_DEV_TOOLS_DOCKER_DIR}/Dockertag`
+docker run -it --rm -v ${PWD}:/work -w /work `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`

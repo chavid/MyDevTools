@@ -1,4 +1,4 @@
-FROM gcc:11.1.0
+FROM gcc:12.1.0
 
 # Ensure use of bash
 SHELL ["/bin/bash","-c"]
