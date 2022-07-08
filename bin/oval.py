@@ -283,10 +283,10 @@ CWD = os.getcwd()
 differ = difflib.Differ() # https://docs.python.org/3/library/difflib.html
 
 def process_directory(workdir, subcommand, args) :
-
     os.chdir(workdir)
     if (workdir!='.') and (workdir!=CWD) :
       logging.info('>>>>> '+workdir)  
+    #return 0
 
     # search for ovalfile in the current working directory
     syspathbackup = sys.path
@@ -491,7 +491,6 @@ args = parser.parse_args()
 workdirs = []
 try_workdir(os.getcwd(),workdirs)
 
-
 # ==========================================
 # Prepare subcommand
 
@@ -524,8 +523,10 @@ if subcommand=='run':
   for workdir in workdirs :
     results[workdir] = pools.submit(process_directory,workdir,subcommand,args)
   for workdir in workdirs :
-    globalreturncode = globalreturncode or results[workdir].result()
+    tmpreturncode = results[workdir].result()
+    globalreturncode = globalreturncode or tmpreturncode
 else:
   for workdir in workdirs :
-    globalreturncode = globalreturncode or process_directory(workdir,subcommand,args)
+    tmpreturncode = process_directory(workdir,subcommand,args)
+    globalreturncode = globalreturncode or tmpreturncode
 sys.exit(globalreturncode)
