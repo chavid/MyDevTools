@@ -28,6 +28,13 @@ RUN apt-get install -y python-dev
 # Installations apt-get, FIN
 RUN rm -rf /var/lib/apt/lists/*
 
+# fmtlib/fmt
+RUN git clone https://github.com/fmtlib/fmt.git
+RUN cd fmt \
+&& mkdir build && cd build \
+&& cmake .. \
+&& make install
+
 # timezone
 ENV TZ=Europe/Paris
 
