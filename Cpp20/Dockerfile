@@ -32,7 +32,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/fmtlib/fmt.git
 RUN cd fmt \
 && mkdir build && cd build \
-&& cmake .. \
+&& cmake -DBUILD_SHARED_LIBS=ON -DFMT_TEST=OFF .. \
 && make install
 
 # timezone

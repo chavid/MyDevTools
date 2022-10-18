@@ -11,4 +11,4 @@ rm -rf mydevtools
 cp -r ../bin mydevtools
 
 docker build -f Dockerfile -t `cat Dockertag` .
-# --force-rm --no-cache
+#docker build --force-rm --no-cache -f Dockerfile -t `cat Dockertag` .
