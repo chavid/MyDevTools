@@ -35,6 +35,14 @@ RUN cd fmt \
 && cmake -DBUILD_SHARED_LIBS=ON -DFMT_TEST=OFF .. \
 && make install
 
+# libcoro
+RUN git clone --recurse-submodules https://github.com/jbaldwin/libcoro.git
+RUN cd libcoro \
+&& mkdir Release && cd Release \
+&& cmake -DCMAKE_BUILD_TYPE=Release .. \
+&& cmake --build . \
+&& make install
+
 # timezone
 ENV TZ=Europe/Paris
 
@@ -43,4 +51,3 @@ COPY mydevtools /mydevtools
 
 # Start a shell by default
 CMD bash --rcfile /mydevtools/bashrc
-
