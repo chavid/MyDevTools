@@ -23,7 +23,9 @@ alias oval=${DEV_SCRIPTS_DIR}/bin/oval.py
 unset DEV_SCRIPTS_DOCKER_DIR
 if [ "$1" != "" ] ; then
   if [ -f "$1/Dockerfile" ] ; then
-    export DEV_SCRIPTS_DOCKER_DIR=$1
+    cd $1
+    export DEV_SCRIPTS_DOCKER_DIR=`pwd`
+    cd ${ORIGINAL_DIR}
   else
     if [ -f "${DEV_SCRIPTS_DIR}/$1/Dockerfile" ] ; then
       export DEV_SCRIPTS_DOCKER_DIR=${DEV_SCRIPTS_DIR}/$1
