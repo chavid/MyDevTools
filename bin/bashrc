@@ -13,3 +13,6 @@ cd $ORIGINAL_DIR
 alias count=${SCRIPT_DIR}/count.sh
 alias oval=${SCRIPT_DIR}/oval.py
 
+# prompt
+
+PS1="${DTAG#*/}:\w>"
