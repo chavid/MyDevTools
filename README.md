@@ -1,9 +1,8 @@
 
 # General use
 
-Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.sh [<SubDir>]`. If `<SubDir>` is given, the script will search locally if `./<SubDir>` contains a Docker recipe and tag. If not found locally, it will search the same in `<DevScripts>/<SubDir>`. If `<SubDir>` is not given, the script will search a recipe recursively from the current directory.
-
-This will make available the following commands:
+Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.sh`. This will make available the following commands:
+- `drecipe`: alias to the `recipe.sh` script, which recursively search for a `Dockerfile` ; a subdirectory can be provided as argument, where to search for the recipe ; if not, the script scan the current directory, then the `<DevScripts>` one.
 - `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `Dockertag`.
 - `dbash`: alias to the `run.sh` script, will start a new interactive container, from the docker image whose name is taken from `Dockertag`, mount the current working directory as `/work`, and start a bash shell.
 
@@ -17,6 +16,7 @@ If the docker recipe include a copy of `<DevScripts>/bin` as `/mydevtools` in th
 # Files in `bin` subdirectory
 
 Docker related:
+* `recipe.sh` : script used to find a recipe.
 * `build.sh` : script used to build the image.
 * `run.sh` : script used to run the image.
 
