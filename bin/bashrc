@@ -15,4 +15,4 @@ alias oval=${SCRIPT_DIR}/oval.py
 
 # prompt
 
-PS1="${DTAG#*/}:\w>"
+PS1="${DTAG#*/}:\w> "
