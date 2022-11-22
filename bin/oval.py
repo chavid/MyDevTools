@@ -113,7 +113,11 @@ def apply_build(target,multi,expanded):
 # SUBCOMMAND: Run
 
 def apply_run(target,multi,expanded):
-    sh_command = "({}) 2>&1 | tee {}.out ; test ${{PIPESTATUS[0]}} -eq 0".format(target["command"], target['name'])
+    time_option = target.get("time","off")
+    if ((time_option=="real") or (time_option=="user")):
+      sh_command = "(time ({})) 2>&1 | tee {}.out ; test ${{PIPESTATUS[0]}} -eq 0".format(target["command"], target['name'])
+    else:
+      sh_command = "({}) 2>&1 | tee {}.out ; test ${{PIPESTATUS[0]}} -eq 0".format(target["command"], target['name'])
     out_file_name = "{}.out".format(target['name'])
     # version originale :  stderr=subprocess.STDOUT
     proc = subprocess.run(sh_command, shell=True, executable='bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -137,6 +141,8 @@ def apply_run(target,multi,expanded):
 # ==========================================
 # SUBCOMMAND: Diff
 
+time_exp = re.compile('^(\w+)\s+([0-9]+)m([.0-9]+)s$')
+
 def apply_diff(target,multi,expanded):
 
     # if a line has two matching groups, we suppose it a a key/value pair
@@ -144,6 +150,7 @@ def apply_diff(target,multi,expanded):
     # ATTENTION : la partie cryptage n'est pas operationnelle
     # pour les filtres de diff qui ont plusieurs groupes !!!
 
+    time_option = target.get("time","off")
     logging.debug('process target {}'.format(target['name']))
     if not target['out']:
         logging.warning('lacking file {}.out'.format(target['name']))
@@ -172,7 +179,18 @@ def apply_diff(target,multi,expanded):
     out_log_dict = {}
     out_md5_dict = {}
     out_log_keys = []
-    for line in proc1.stdout.split('\n'):
+    out_lines = proc1.stdout.rstrip().split('\n')
+    if (time_option!="off"):
+      out_time = 0.
+      for i in range(3):
+        line = out_lines[-1]
+        del out_lines[-1]
+        time_match = time_exp.match(line)
+        if time_match:
+          ( time_name, time_m, time_s ) = time_match.groups()
+          if time_name==time_option:
+            out_time = float(time_m)*60+float(time_s)
+    for line in out_lines:
         for fmatch in [fexp.match(line) for fexp in fexps]:
             if fmatch:
                 grps = fmatch.groups()
@@ -195,7 +213,18 @@ def apply_diff(target,multi,expanded):
     out_ref_matches = []
     out_ref_dict = {}
     out_ref_keys = []
-    for line in proc2.stdout.split('\n'):
+    ref_lines = proc2.stdout.rstrip().split('\n')
+    if (time_option!="off"):
+      ref_time = 0.
+      for i in range(3):
+        line = ref_lines[-1]
+        del ref_lines[-1]
+        time_match = time_exp.match(line)
+        if time_match:
+          ( time_name, time_m, time_s ) = time_match.groups()
+          if time_name==time_option:
+            ref_time = float(time_m)*60+float(time_s)
+    for line in ref_lines:
         for fmatch in [fexp.match(line) for fexp in fexps]:
             if fmatch:
                 grps = fmatch.groups()
@@ -204,7 +233,7 @@ def apply_diff(target,multi,expanded):
                         logging.error(prefix + 'redefinition of {} in reference'.format(grps[0]))
                     else:
                         out_ref_dict[grps[0]] = grps[1]
-                        # so to mzmorize results ordering
+                        # so to memorize results ordering
                         out_ref_keys.append(grps[0])
                 else:
                     for grp in grps:
@@ -250,6 +279,13 @@ def apply_diff(target,multi,expanded):
         if not k in out_log_dict:
             logging.info(prefix + 'lacking {}'.format(k))
             nbdiff += 1
+
+    # optional time comparison
+    if (time_option!="off"):
+      if ((abs(out_time-ref_time)/ref_time)>.2):
+        print("-",ref_time)
+        print("+",out_time)
+        nbdiff += 1
 
     # final summary
     if nbdiff == 0:
