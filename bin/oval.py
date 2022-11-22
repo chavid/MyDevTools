@@ -98,6 +98,7 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 logger.addHandler(log_file_handler)
 
+
 # ==========================================
 # SUBCOMMAND: Build
 
@@ -495,6 +496,7 @@ try_workdir(os.getcwd(),workdirs)
 # Prepare subcommand
 
 abbrevs = {
+    'help': 'help', 'hel': 'help', 'he': 'help', 'h': 'help',
     'list': 'list', 'lis': 'list', 'li': 'list', 'l': 'list',
     'build': 'build', 'buil': 'build', 'bui': 'build', 'bu': 'build', 'b': 'build',
     'run': 'run', 'ru': 'run', 'r': 'run',
@@ -512,12 +514,54 @@ if abbrev in abbrevs.keys():
 else:
     subcommand = abbrev
 
+# ==========================================
+# Additional Help
+
+def additional_help():
+    print('''
+subcommands:
+  list: display the list of targets, as described in in ovalfile.py.
+  run: execute the shell command associated with the given target name.
+  validate: copy the last execution output into the target reference.
+  diff: compare the last execution output with the target reference.
+
+abbreviated subcommands:
+  Each subcommand can be abbreviated woth a subset of its first letters,
+  such as 'ru' or 'r' for 'run', 'lis', 'li' or 'l' for 'list' etc.
+
+configuration files:
+  Files called 'ovalfile.py' are recursively searched for in the current
+  directory and all its subdirectories.
+
+list of available targets:
+  Each file 'ovalfile.py' is expected to define the targets of its
+  corresponding directory, within a python list called 'targets´,
+  each target being a dictionary with a 'name' and an associated
+  shell 'command'. A way to get the list of local targets of a
+  directory is to move there and type 'oval list'.
+
+wildcards in target names:
+  When running an oval subcommand, one can use wildcards:
+  'oval r <pattern1> <pattern2>...'
+  The only wildcard character is '%'.
+  One can check how a given pattern expands : 'oval l <pattern>'.
+
+ovalfile.py filters:
+  run_filters_out: regular expression for the lines to be erased from the output.
+  diff_filters_in: regular expression for the lines to be compared.
+    If the regular expression has two groups, it is considered as a pair name-value.
+    A dictionary will be built, the comparison will be between the current output
+    and the ref dictionaries.
+''')
 
 # ==========================================
 # Start to process directories, in parallel if subcommand is "run"
 
 globalreturncode = 0
-if subcommand=='run':
+if subcommand=='help':
+  parser.print_help()
+  additional_help()
+elif subcommand=='run':
   pools = concurrent.futures.ProcessPoolExecutor(max_workers=10)
   results = {}
   for workdir in workdirs :
