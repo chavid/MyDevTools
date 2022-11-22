@@ -1,7 +1,1 @@
-Expected result for 'oval d' :
-```
-demo1: - LINE 3
-demo1: + LINE 30
-demo2: - LINE 20
-demo3: ==
-```
+Run the script `oval_test.sh`, and check the two files `oval_test.out` and `oval_test.ref` are reported to be identicals.
