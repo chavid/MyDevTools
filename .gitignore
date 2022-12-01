@@ -34,3 +34,7 @@
 # Oval
 .oval.log
 __pycache__
+
+
+# Copies for images
+mydevtools
