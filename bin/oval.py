@@ -283,8 +283,8 @@ def apply_diff(target,multi,expanded):
     # optional time comparison
     if (time_option!="off"):
       if ((abs(out_time-ref_time)/ref_time)>.2):
-        print("- {} {}s".format(time_option,ref_time))
-        print("+ {} {}s".format(time_option,out_time))
+        logging.info(prefix + "- {} {}s".format(time_option,ref_time))
+        logging.info(prefix + "+ {} {}s".format(time_option,out_time))
         nbdiff += 1
 
     # final summary
