@@ -85,3 +85,8 @@ When things are installed as root with `pip` in a recipe, if you run the contain
 non-root, you may encounter access right problems, especially when running notebooks. 
 
 
+# Ressources
+
+- https://www.redhat.com/sysadmin/arguments-options-bash-scripts
+- https://fr.wikibooks.org/wiki/Programmation_Bash/Tests
+- https://www.golinuxcloud.com/bash-getopts/
