@@ -13,7 +13,7 @@ cd ${ORIGINAL_DIR}
 
 alias drecipe=${DEV_SCRIPTS_DIR}/bin/recipe.sh
 alias dbuild=${DEV_SCRIPTS_DIR}/bin/build.sh
-alias dbash=${DEV_SCRIPTS_DIR}/bin/run.sh
+alias drun=${DEV_SCRIPTS_DIR}/bin/run.sh
 alias dpush=${DEV_SCRIPTS_DIR}/bin/push.sh
 
 alias count=${DEV_SCRIPTS_DIR}/bin/count.sh
