@@ -1,4 +1,13 @@
 
+# News
+
+## 2023-01-19
+
+- alias `dbash` is renamed `drun`.
+- `drun` (alias to `run.sh`) and `dbuild` (alias to `build.sh`) have been given few options, including `-h` to print a short help.
+- new recipe `Python3`.
+
+
 # General use
 
 Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.sh`. This will make available the following commands:
@@ -56,10 +65,19 @@ are displayed.
 
 # Recipe tips
 
-## CMD to be used
+## Mydevtools
 
-Important: in the recipes, always put the final `CMD bash --rcfile /mydevtools/bashrc`,
-so that the devtools are well configured in the image.
+If one want to get the devtools duplicated in the image,
+and the devtools setup and PS1 prompt, one should add to the end of the recipe:
+
+```
+# Local copy of my tools
+COPY mydevtools /mydevtools
+
+# Start a shell by default
+CMD bash --rcfile /mydevtools/bashrc
+```
+
 
 ## Pip may be a problem
 
