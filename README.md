@@ -1,10 +1,10 @@
 
 # News
 
-## 2023-01-19
+## 2023-01-20
 
 - alias `dbash` is renamed `drun`.
-- `drun` (alias to `run.sh`) and `dbuild` (alias to `build.sh`) have been given few options, including `-h` to print a short help.
+- `drun` (alias to `run.sh`), `dbuild` (alias to `build.sh`) and `drecipe` (alias to `recipe.sh`) have been given few options, including `-h` to print a short help.
 - new recipe `Python3`.
 
 
