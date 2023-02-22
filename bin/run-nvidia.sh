@@ -13,5 +13,6 @@ export DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
 # de "driver" entre hôte et conteneur.
 # Pour utiliser l'image oneapi basée sur ubuntu 20.4, en latest,
 # j'ai du installer sur l´hôte nvidia-driver-520
+# Au lancement du conteneur, ajouter `--gpus all`
 
 docker run --gpus all --user "$(id -u):$(id -g)" -it --rm -v ${PWD}:/work -w /work -e DTAG=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag` `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
