@@ -13,6 +13,13 @@ cd $ORIGINAL_DIR
 alias count=${SCRIPT_DIR}/count.sh
 alias oval=${SCRIPT_DIR}/oval.py
 
+# user scripts
+
+if [ -r ${HOME}/.profile ]
+then
+  source ${HOME}/.profile
+fi
+
 # prompt
 
 PS1="${DTAG#*/}:\w> "
