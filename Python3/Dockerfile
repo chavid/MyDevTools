@@ -32,18 +32,26 @@ RUN rm -rf /var/lib/apt/lists/*
 # update libraries cache
 RUN ldconfig
 
-# pip installations
-#RUN pip install mpi4py
-RUN pip install pygit2
+# group
+ARG GROUP_ID=1000
+RUN addgroup --gid ${GROUP_ID} dev
 
-# conda installations
-RUN conda update -n base -c defaults conda
-RUN conda install -c anaconda rise
-RUN conda install -c anaconda cffi
-RUN conda install -c anaconda cython
-#RUN conda install -c conda-forge pygit2
-RUN conda install -c conda-forge nbdime
-RUN conda install -c conda-forge pdoc3
+# user
+ARG USER_ID=1000
+RUN adduser --shell /bin/bash --uid ${USER_ID} --gid ${GROUP_ID} --disabled-password dev
+USER dev
+
+# installations pip
+#RUN pip install --user mpi4py
+RUN pip install --user pygit2
+RUN pip install --user rise
+RUN pip install --user cffi
+RUN pip install --user cython
+RUN pip install --user nbdime
+RUN pip install --user pdoc3
+
+# poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Local copy of my tools
 COPY mydevtools /mydevtools
