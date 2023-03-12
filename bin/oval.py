@@ -556,6 +556,7 @@ else:
 def additional_help():
     print('''
 subcommands:
+  help: display the list of targets, as described in in ovalfile.py.
   list: display the list of targets, as described in in ovalfile.py.
   run: execute the shell command associated with the given target name.
   validate: copy the last execution output into the target reference.
