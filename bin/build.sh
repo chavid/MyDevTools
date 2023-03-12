@@ -35,7 +35,7 @@ export DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
 # Prepare data to be eventually copied in the image
 cd ${DEV_SCRIPTS_DOCKER_DIR}
 rm -rf mydevtools
-cp -r ../bin mydevtools
+cp -r ${DEV_SCRIPTS_DIR}/bin mydevtools
 
 # Main docker command
 if [ -z "${DEV_SCRIPTS_BUILD_FORCE}" ]
