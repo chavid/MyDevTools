@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Establish top DevScripts dir
+DEV_SCRIPTS_ENV_FILE=${BASH_SOURCE[0]}
+DEV_SCRIPTS_BIN_DIR=`dirname ${DEV_SCRIPTS_ENV_FILE}`
+DEV_SCRIPTS_DIR=`dirname ${DEV_SCRIPTS_BIN_DIR}`
+
 Help()
 {
    # Display Help
