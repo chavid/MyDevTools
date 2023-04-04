@@ -43,12 +43,14 @@ USER dev
 
 # installations pip
 #RUN pip install --user mpi4py
-RUN pip install --user pygit2
-RUN pip install --user rise
-RUN pip install --user cffi
-RUN pip install --user cython
-RUN pip install --user nbdime
-RUN pip install --user pdoc3
+RUN python -m pip install --user pygit2
+RUN python -m pip install --user rise
+RUN python -m pip install --user cffi
+RUN python -m pip install --user cython
+RUN python -m pip install --user nbdime
+RUN python -m pip install --user pdoc3
+RUN python -m pip install --user metakernel
+RUN python -m pip install --user jupyter_contrib_nbextensions
 
 # poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -

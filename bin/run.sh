@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# The DISPLAY export require you to predefine MYIP
-# and is tested only for MacOSX. Having something which
-# works also with linux and windows still TO BE DONE.
-# So to find your IP number on MacOS, use command
-# ifconfig and search for inet lines.
-
 Help()
 {
    # Display Help
@@ -21,16 +15,13 @@ Help()
 }
 
 # Parse the options
-while getopts ":hu8x" option; do
+while getopts ":hux" option; do
    case $option in
       h) # display Help
          Help
          exit;;
-      u) # force rebuilding
-         export DEV_SCRIPTS_RUN_USER="on"
-         ;;
-      8) # forward port 8888
-         export DEV_SCRIPTS_RUN_8888="-p 8888:8888"
+      u) # enforce user id 1000:1000
+         export DEV_SCRIPTS_RUN_USER="--user $(id -u):$(id -g)"
          ;;
       x) # forward X11
          xhost + local:docker
@@ -48,9 +39,5 @@ fi
 export DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
 
 # Main docker command
-if [ -z "${DEV_SCRIPTS_RUN_USER}" ]
-then
-  docker run ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} -it --rm -v ${PWD}:/work -w /work -e DTAG=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag` `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
-else
-  docker run ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} --user "$(id -u):$(id -g)" -it --rm -v ${PWD}:/work -w /work -e DTAG=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag` `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
-fi
+docker run --network host ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag` `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
+#docker run -p 8888:8888 ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag` `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
