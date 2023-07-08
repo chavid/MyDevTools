@@ -45,7 +45,7 @@ cp -r ${DEV_SCRIPTS_DIR}/bin mydevtools
 # Main docker command
 if [ -z "${DEV_SCRIPTS_BUILD_FORCE}" ]
 then
-  docker build --build-arg GROUP_ID="$(id -g)" --build-arg USER_ID="$(id -u)" -f Dockerfile -t `cat Dockertag` .
+  docker build --network host --build-arg GROUP_ID="$(id -g)" --build-arg USER_ID="$(id -u)" -f Dockerfile -t `cat Dockertag` .
 else
-  docker build --build-arg GROUP_ID="$(id -g)" --build-arg USER_ID="$(id -u)" --force-rm --no-cache -f Dockerfile -t `cat Dockertag` .
+  docker build --network host --build-arg GROUP_ID="$(id -g)" --build-arg USER_ID="$(id -u)" --force-rm --no-cache -f Dockerfile -t `cat Dockertag` .
 fi
