@@ -24,3 +24,4 @@ RUN rm -rf /var/lib/apt/lists/*
 # Installation plugin Codeplay
 COPY oneapi-for-nvidia-gpus-2023.1.0-cuda-12.0-linux.sh .
 RUN sh oneapi-for-nvidia-gpus-2023.1.0-cuda-12.0-linux.sh
+

@@ -52,6 +52,16 @@ RUN cd libcoro \
 && cmake --build . \
 && make install
 
+# CADNA
+COPY cadna_c-3.1.11.tar.gz .
+RUN tar -xvf cadna_c-3.1.11.tar.gz
+RUN cd cadna_c-3.1.11 \
+&& ./configure \
+&& make install \
+&& cd .. \
+&& rm -rf cadna_c-3.1.11.tar.gz \
+&& rm -rf cadna_c-3.1.11
+
 # timezone
 ENV TZ=Europe/Paris
 
