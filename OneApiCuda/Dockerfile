@@ -7,7 +7,7 @@ SHELL ["/bin/bash","-c"]
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Preparation CUDA
+# Preparation CUDA:  Driver Version: 535.54.03    CUDA Version: 12.2 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
 RUN mv -f cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
 RUN wget https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda-repo-ubuntu2204-12-2-local_12.2.0-535.54.03-1_amd64.deb
