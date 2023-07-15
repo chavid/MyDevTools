@@ -14,3 +14,4 @@ fi
 export DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
 
 docker push `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
+docker push latest
