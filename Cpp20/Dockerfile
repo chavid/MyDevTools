@@ -1,4 +1,4 @@
-FROM gcc:13.1.0
+FROM gcc:12.3.0
 
 # Ensure use of bash
 SHELL ["/bin/bash","-c"]
@@ -45,12 +45,12 @@ RUN cd fmt \
 && make install
 
 # libcoro
-#RUN git clone --recurse-submodules https://github.com/jbaldwin/libcoro.git
-#RUN cd libcoro \
-#&& mkdir Release && cd Release \
-#&& cmake -DCMAKE_BUILD_TYPE=Release .. \
-#&& cmake --build . \
-#&& make install
+RUN git clone --recurse-submodules https://github.com/jbaldwin/libcoro.git
+RUN cd libcoro \
+&& mkdir Release && cd Release \
+&& cmake -DCMAKE_BUILD_TYPE=Release .. \
+&& cmake --build . \
+&& make install
 
 # CADNA
 COPY cadna_c-3.1.11.tar.gz .
