@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# The options `-p 8888:8888` and similar are made useless by the
+# `--network host` option.
+
+# For GPUS, the options `--privileged` and `--device=/dev/dri`
+# are made useless by the `--gpus all` option.
+
 Help()
 {
    # Display Help
@@ -16,6 +22,7 @@ Help()
 }
 
 # Find the optional current recipe and deduce the image name
+
 if [ -r /tmp/dev-scripts-recipe-dir-$PPID ]
 then
   DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
@@ -23,6 +30,7 @@ then
 fi
 
 # Parse the options
+
 while getopts ":hu8xr" option; do
    case $option in
       h) # display Help
@@ -49,6 +57,7 @@ while getopts ":hu8xr" option; do
 done
 
 # Finalize image choice
+
 if [[ -v ignorerecipe ]]
 then
   image=$1
@@ -61,4 +70,5 @@ then
 fi
 
 # Main docker command
-docker run  --gpus all --privileged --device=/dev/dri --network host ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=${image} ${image} $*
+
+docker run --gpus all --network host ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=${image} ${image} $*
