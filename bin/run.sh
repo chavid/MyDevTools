@@ -5,6 +5,8 @@
 
 # For GPUS, the options `--privileged` and `--device=/dev/dri`
 # are made useless by the `--gpus all` option.
+# ... but --gpus all breaks a simple hello world for gcc 13 ?!?
+# https://github.com/docker-library/gcc/issues/99
 
 Help()
 {
@@ -17,6 +19,7 @@ Help()
    echo "u     Run with --user $(id -u):$(id -g)."
    echo "8     Run with -p 8888:8888."
    echo "x     Run with X11 tunelling."
+   echo "g     Run with --gpus all."
    echo "r     Use an explicit image rather than the default one."
    echo
 }
@@ -31,7 +34,7 @@ fi
 
 # Parse the options
 
-while getopts ":hu8xr" option; do
+while getopts ":hu8xgr" option; do
    case $option in
       h) # display Help
          Help
@@ -48,6 +51,10 @@ while getopts ":hu8xr" option; do
          shift
          xhost + local:docker
          export DEV_SCRIPTS_RUN_X11="-e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro"
+         ;;
+      g) # GPUs
+         shift
+         export DEV_SCRIPTS_RUN_GPUS="--gpus all"
          ;;
       r) # ignore the current recipe and take the image from the command line
          shift
@@ -71,4 +78,4 @@ fi
 
 # Main docker command
 
-docker run --gpus all --network host ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=${image} ${image} $*
+docker run --network host ${DEV_SCRIPTS_RUN_GPUS} ${DEV_SCRIPTS_RUN_8888} ${DEV_SCRIPTS_RUN_X11} ${DEV_SCRIPTS_RUN_USER} -it --rm -v ${PWD}:/work -w /work -e DTAG=${image} ${image} $*
