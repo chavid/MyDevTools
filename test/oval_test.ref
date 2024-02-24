@@ -4,5 +4,5 @@ demo2: - LINE 20
 demo3: ==
 keys: for B, 20 != 2
 sleep1: ==
-- real 1.001s
-+ real 2.001s
+sleep2: - real 1.001s
+sleep2: + real 2.002s
