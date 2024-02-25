@@ -1,11 +1,17 @@
 #!/bin/bash
 
+# Establish top DevScripts dir
+DEV_SCRIPTS_ENV_FILE=${BASH_SOURCE[0]}
+DEV_SCRIPTS_BIN_DIR=`dirname ${DEV_SCRIPTS_ENV_FILE}`
+DEV_SCRIPTS_DIR=`dirname ${DEV_SCRIPTS_BIN_DIR}`
+
 Help()
 {
    # Display Help
+   echo
    echo "Search for a recipe."
    echo
-   echo "Syntax: recipe.sh [-v|-h]"
+   echo "Syntax: recipe.sh [-v|-h] [directory]"
    echo "options:"
    echo "h     Print this Help."
    echo "v     Show the currently selected recipe."
@@ -30,9 +36,18 @@ while getopts ":hv" option; do
 done
 
 unset DEV_SCRIPTS_DOCKER_TOPDIR
+nbfiles=0
 if [ "$1" != "" ] ; then
-  DEV_SCRIPTS_DOCKER_TOPDIR=$1
-  nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
+  if [ -d "$1" ] ; then
+    DEV_SCRIPTS_DOCKER_TOPDIR=$1
+    nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
+  fi
+  if [ ${nbfiles} -eq 0 ] ; then
+    if [[ ${1} != / ]] ; then
+      DEV_SCRIPTS_DOCKER_TOPDIR=${DEV_SCRIPTS_DIR}/${1}
+      nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
+    fi
+  fi
 else
   DEV_SCRIPTS_DOCKER_TOPDIR="."
   nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
