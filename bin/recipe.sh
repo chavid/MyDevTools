@@ -19,11 +19,15 @@ Help()
 }
 
 # Parse the options
-while getopts ":hv" option; do
+while getopts ":hvi" option; do
    case $option in
       h) # display Help
          Help
          exit;;
+      i) # take a turnkey image
+         shift
+         turnkey="true"
+         ;;
       v) # verbose
          if [ ! -r /tmp/dev-scripts-recipe-dir-$PPID ]
          then
@@ -35,6 +39,13 @@ while getopts ":hv" option; do
    esac
 done
 
+if [[ -v turnkey ]]
+then
+  echo $1 &> /tmp/dev-scripts-recipe-dir-$PPID
+  echo recipe: `cat /tmp/dev-scripts-recipe-dir-$PPID`
+  exit
+fi
+
 unset DEV_SCRIPTS_DOCKER_TOPDIR
 nbfiles=0
 if [ "$1" != "" ] ; then
@@ -43,7 +54,7 @@ if [ "$1" != "" ] ; then
     nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
   fi
   if [ ${nbfiles} -eq 0 ] ; then
-    if [[ ${1} != / ]] ; then
+    if [[ ${1} != /* ]] ; then
       DEV_SCRIPTS_DOCKER_TOPDIR=${DEV_SCRIPTS_DIR}/${1}
       nbfiles=`find ${DEV_SCRIPTS_DOCKER_TOPDIR} -iregex '.*dockerfile.*' -type f | wc -l `
     fi

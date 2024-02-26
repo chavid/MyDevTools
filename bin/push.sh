@@ -1,17 +1,18 @@
 #!/bin/bash
 
-#target=${1}
-#shift
-#flavor=${1}
-#shift
-#docker run -it --rm -v ${PWD}:/work -w /work `cat ${SCRIPT_DIR}/name.${target}.${flavor}.txt` $*
-
+# Find the current recipe
 if [ ! -r /tmp/dev-scripts-recipe-dir-$PPID ]
 then
   echo unknown recipe
   exit
 fi
-export DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
+cat_tmp=`cat /tmp/dev-scripts-recipe-dir-$PPID`
+if [[ ${cat_tmp} != /* ]] ; then
+  echo turnkey image: ${cat_tmp}
+  exit
+fi
+export DEV_SCRIPTS_DOCKER_DIR=${cat_tmp}
 
+# push
 docker push `cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
 docker push latest

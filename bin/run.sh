@@ -28,13 +28,18 @@ Help()
 
 if [ -r /tmp/dev-scripts-recipe-dir-$PPID ]
 then
-  DEV_SCRIPTS_DOCKER_DIR=`cat /tmp/dev-scripts-recipe-dir-$PPID`
-  image=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
+  cat_tmp=`cat /tmp/dev-scripts-recipe-dir-$PPID`
+  if [[ ${cat_tmp} == /* ]] ; then
+    DEV_SCRIPTS_DOCKER_DIR=${cat_tmp}
+    image=`cat ${DEV_SCRIPTS_DOCKER_DIR}/Dockertag`
+  else
+    image=${cat_tmp}
+  fi
 fi
 
 # Parse the options
 
-while getopts ":hu8xgr" option; do
+while getopts ":hu8xg" option; do
    case $option in
       h) # display Help
          Help
@@ -55,10 +60,6 @@ while getopts ":hu8xgr" option; do
       g) # GPUs
          shift
          export DEV_SCRIPTS_RUN_GPUS="--gpus all"
-         ;;
-      r) # ignore the current recipe and take the image from the command line
-         shift
-         ignorerecipe="true"
          ;;
    esac
 done
