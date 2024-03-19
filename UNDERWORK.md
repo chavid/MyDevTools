@@ -1,4 +1,8 @@
 
+# A faire
+
+- Réunifier les différents script de run, en faisant usage de plus d'options.
+
 # A étudier
 
 - [Docker in Windows 11 using WSL2](https://medium.com/@ferarias/docker-in-windows-11-using-wsl2-8e30faddc32c)
