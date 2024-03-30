@@ -11,9 +11,10 @@ Help()
    echo
    echo "Search for a recipe."
    echo
-   echo "Syntax: recipe.sh [-v|-h] [directory]"
+   echo "Syntax: recipe.sh [-v|-i|-h] [directory|image]"
    echo "options:"
    echo "h     Print this Help."
+   echo "i     Take a turnkey image."
    echo "v     Show the currently selected recipe."
    echo
 }

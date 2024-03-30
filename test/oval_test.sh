@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # so to get the oval alias
-source ../env.sh &> /dev/null
+source ../env.bash &> /dev/null
 
 # so to make the aliases usable in a non-interactive script
 shopt -s expand_aliases

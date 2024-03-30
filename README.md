@@ -10,12 +10,12 @@
 
 # General use
 
-Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.sh`. This will make available the following commands:
+Starting from a bash shell, and staying into any directory, one should source `<DevScripts>/env.bash`. This will make available the following commands:
 - `drecipe`: alias to the `recipe.sh` script, which recursively search for a `Dockerfile` ; a subdirectory can be provided as argument, where to search for the recipe ; if not, the script scan the current directory, then the `<DevScripts>` one.
 - `dbuild`: alias to the `build.sh` script, building the docker image and tagging it with the name within `Dockertag`.
 - `drun`: alias to the `run.sh` script, will start a new interactive container, from the docker image whose name is taken from `Dockertag`, mount the current working directory as `/work`, and start a bash shell.
 
-Those other commands  are available after in the orginal bash shell, once `env.sh` has been source:
+Those other commands  are available after in the orginal bash shell, once `env.bash` has been source:
 - `count`: count the code lines in the current directory and subdirectories.
 - `oval`: automatically run regression tests and/or various set of commands.
 

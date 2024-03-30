@@ -1,6 +1,6 @@
 
-# Version 0
-FROM continuumio/anaconda3:2022.10
+# Version 1.0.0
+FROM quay.io/jupyter/scipy-notebook
 
 # Ensure use of bash
 SHELL ["/bin/bash","-c"]
@@ -9,6 +9,7 @@ SHELL ["/bin/bash","-c"]
 ENV TZ=Europe/Paris
 
 # aptget : so to avoid debconf interactive questions
+USER root
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -26,37 +27,27 @@ RUN apt-get install -y texlive-xetex \
 && apt-get install -y wkhtmltopdf \
 && apt-get install -y gcc
 
+# for mpi4py
+RUN apt-get install -y openmpi-bin libopenmpi-dev
+
 # Fin des installations apt-get
 RUN rm -rf /var/lib/apt/lists/*
 
 # update libraries cache
 RUN ldconfig
 
-# group
-ARG GROUP_ID=1000
-RUN addgroup --gid ${GROUP_ID} dev
-
-# user
-ARG USER_ID=1000
-RUN adduser --shell /bin/bash --uid ${USER_ID} --gid ${GROUP_ID} --disabled-password dev
-USER dev
-
 # installations pip
-#RUN pip install --user mpi4py
-RUN python -m pip install --user pygit2
-RUN python -m pip install --user rise
+USER ${NB_UID}
+RUN python -m pip install --user jupyterlab_rise
 RUN python -m pip install --user cffi
 RUN python -m pip install --user cython
 RUN python -m pip install --user nbdime
 RUN python -m pip install --user pdoc3
+RUN python -m pip install --user pytest
 RUN python -m pip install --user metakernel
-RUN python -m pip install --user jupyter_contrib_nbextensions
+RUN python -m pip install --user mpi4py
+RUN python -m pip install --user rise
 
 # poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Local copy of my tools
-COPY mydevtools /mydevtools
-
-# Start a shell by default
-CMD bash --rcfile /mydevtools/bashrc
