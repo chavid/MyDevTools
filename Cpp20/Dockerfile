@@ -77,6 +77,10 @@ RUN mkdir -p /opt &&  cd /opt && \
     tar xvf maqao.x86_64.2.18.0.tar.xz && \
     rm -f maqao.x86_64.2.18.0.tar.xz
 
+# Hyperfine
+COPY hyperfine_1.16.1_amd64.deb .
+RUN dpkg -i hyperfine_1.16.1_amd64.deb
+
 # EVE
 RUN git clone -b main https://github.com/jfalcou/eve.git
 RUN cd eve \
@@ -133,6 +137,7 @@ RUN adduser --shell /bin/bash --uid ${USER_ID} --gid ${GROUP_ID} --disabled-pass
 USER dev
 
 # Installations pipx
+RUN python -m pipx ensurepath
 RUN python -m pipx install conan
 # pip complement for nb=>pdf via html
 #RUN python -m pipx notebook-as-pdf

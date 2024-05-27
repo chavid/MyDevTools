@@ -14,14 +14,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 USER dev
 
-# Download GTP4ALL model
-
-RUN mkdir -p ~/.cache/gpt4all
-ARG LLM=orca-mini-3b-gguf2-q4_0.gguf
-RUN wget https://gpt4all.io/models/gguf/$LLM -O ~/.cache/gpt4all/$LLM
-ARG LLM=all-MiniLM-L6-v2-f16.gguf
-RUN wget https://gpt4all.io/models/gguf/$LLM -O ~/.cache/gpt4all/$LLM
-
 # Miniconda3 with Python 3.11
 
 RUN mkdir -p ~/miniconda3
@@ -52,11 +44,6 @@ RUN ./miniconda3_eval.bash python -m pip install jupytext
 RUN mkdir -p /home/dev/miniconda3/etc/jupyter/labconfig
 COPY jupytext.toml /home/dev/jupytext.toml
 COPY labconfig/default_setting_overrides.json /home/dev/miniconda3/etc/jupyter/labconfig/default_setting_overrides.json
-
-RUN ./miniconda3_eval.bash python -m pip install faiss-cpu
-RUN ./miniconda3_eval.bash python -m pip install jupyter-ai
-RUN ./miniconda3_eval.bash python -m pip install gpt4all
-RUN ./miniconda3_eval.bash python -m pip install pypdf
 
 # By default, serve jupyter lab at container startup 
 
